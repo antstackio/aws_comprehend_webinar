@@ -14,11 +14,14 @@ class ComprehendWebinarStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
         self.STACKPREFIX = 'sm-webinar'
         
+        # ! S3 Bucket to store
         self.bucket = aws_s3.Bucket(self,
             id=f'{self.STACKPREFIX}-data-store',
             auto_delete_objects=True,
             removal_policy=aws_cdk.RemovalPolicy.DESTROY
         )
+
+        # ! client request handler Lambda 
         self.request_handler = aws_lambda.Function(self,
             id=f'{self.STACKPREFIX}-client-request',
             runtime=aws_lambda.Runtime.PYTHON_3_8,
@@ -37,6 +40,7 @@ class ComprehendWebinarStack(Stack):
             )
         )
 
+        # ! AWS Comprehend invoking Lambda
         self.invoke_comprehend = aws_lambda.Function(self,
             id=f'{self.STACKPREFIX}-invoke-comprehend',
             runtime=aws_lambda.Runtime.PYTHON_3_8,
@@ -55,4 +59,3 @@ class ComprehendWebinarStack(Stack):
                 resources=[f'{self.bucket.bucket_arn}/*']
             )
         )
-
