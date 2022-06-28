@@ -6,7 +6,7 @@ from aws_cdk import (
 )
 import aws_cdk
 from constructs import Construct
-from aws_cdk import aws_s3, aws_lambda, aws_lambda_event_sources, aws_ses
+from aws_cdk import aws_s3, aws_lambda, aws_lambda_event_sources, aws_ses, aws_iam
 
 class ComprehendWebinarStack(Stack):
 
@@ -19,14 +19,13 @@ class ComprehendWebinarStack(Stack):
             auto_delete_objects=True,
             removal_policy=aws_cdk.RemovalPolicy.DESTROY
         )
-        
         self.request_handler = aws_lambda.Function(self,
             id=f'{self.STACKPREFIX}-client-request',
             runtime=aws_lambda.Runtime.PYTHON_3_8,
             code=aws_lambda.Code.from_asset('src'),
             handler='main.handler'
         )
-
+        self.request_handler.add_environment(key='SOURCEBUCKET', value=self.bucket.bucket_name)
         self.request_url = self.request_handler.add_function_url(
             auth_type=aws_lambda.FunctionUrlAuthType.NONE,
             cors=aws_lambda.FunctionUrlCorsOptions(allowed_origins=['*'])
@@ -42,5 +41,13 @@ class ComprehendWebinarStack(Stack):
             source=aws_lambda_event_sources.S3EventSource(self.bucket,
                 events=[aws_s3.EventType.OBJECT_CREATED],
                 filters=[aws_s3.NotificationKeyFilter(prefix='/complaints')]
+            )
+        )
+
+        self.bucket.add_to_resource_policy(
+            aws_iam.PolicyStatement(
+                actions=['s3:PutObject', 's3:GetObject'],
+                principals=[aws_iam.ServicePrincipal('lambda.amazonaws.com')],
+                resources=[f"{self.bucket.bucket_arn}/*"]
             )
         )
