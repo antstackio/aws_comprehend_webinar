@@ -30,6 +30,12 @@ class ComprehendWebinarStack(Stack):
             auth_type=aws_lambda.FunctionUrlAuthType.NONE,
             cors=aws_lambda.FunctionUrlCorsOptions(allowed_origins=['*'])
         )
+        self.request_handler.add_to_role_policy(
+            aws_iam.PolicyStatement(
+                actions=['s3:PutObject', 's3:GetObject'],
+                resources=[f"{self.bucket.bucket_arn}/*"]
+            )
+        )
 
         self.invoke_comprehend = aws_lambda.Function(self,
             id=f'{self.STACKPREFIX}-invoke-comprehend',
@@ -44,10 +50,3 @@ class ComprehendWebinarStack(Stack):
             )
         )
 
-        self.bucket.add_to_resource_policy(
-            aws_iam.PolicyStatement(
-                actions=['s3:PutObject', 's3:GetObject'],
-                principals=[aws_iam.ServicePrincipal('lambda.amazonaws.com')],
-                resources=[f"{self.bucket.bucket_arn}/*"]
-            )
-        )
