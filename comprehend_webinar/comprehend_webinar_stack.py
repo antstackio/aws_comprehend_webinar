@@ -46,7 +46,13 @@ class ComprehendWebinarStack(Stack):
         self.invoke_comprehend.add_event_source(
             source=aws_lambda_event_sources.S3EventSource(self.bucket,
                 events=[aws_s3.EventType.OBJECT_CREATED],
-                filters=[aws_s3.NotificationKeyFilter(prefix='/complaints')]
+                filters=[aws_s3.NotificationKeyFilter(prefix='complaints/')]
+            )
+        )
+        self.invoke_comprehend.add_to_role_policy(
+            aws_iam.PolicyStatement(
+                actions=['s3:GetObject', 's3:List*'],
+                resources=[f'{self.bucket.bucket_arn}/*']
             )
         )
 
