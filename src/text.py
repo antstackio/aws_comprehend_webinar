@@ -14,6 +14,17 @@ def handler(event, context):
         )
         data = response['Body'].read().decode('utf-8')
         # call comprehend endpoint
+        comprehend_endpoint = "dummy_endpoint_arn"
+        comprehend_client = boto3.client('comprehend', region_name='us-east-1')
+
+        response = comprehend_client.classify_document(
+            EndpointArn=comprehend_endpoint,
+            Text=data
+        )
+        classes_ = response['Classes']
+        target_class = list(filter(lambda x: x['Score'] >= 0.90, classes_))
+
+        print(target_class)
 
         return {
             "statusCode": 200,

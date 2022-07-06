@@ -59,3 +59,9 @@ class ComprehendWebinarStack(Stack):
                 resources=[f'{self.bucket.bucket_arn}/*']
             )
         )
+        self.invoke_comprehend.add_to_role_policy(
+            aws_iam.PolicyStatement(
+                actions=['comprehend:ClassifyDocument'],
+                resources=['dummy_endpoint_arn']
+            )
+        )
